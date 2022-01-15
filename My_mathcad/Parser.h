@@ -6,107 +6,88 @@
 #include <algorithm>
 #include "FSM.h"
 
-class AToken
-{
-protected:
-	AToken() {};
-	~AToken() {};
-};
+namespace fp {
 
-using tokens_t = std::vector<std::shared_ptr<AToken>>;
-using func_t = std::function<double(std::vector<double> const& args)>;
-
-class Operand : public AToken{
-};
-
-
-class Action : public AToken {
-};
-
-class FirstParser {
-public:
-	FirstParser();
-	~FirstParser() {}
-
-	tokens_t parse(std::string const& inp);
-
-private:
-	void add_sep();
-	void add_sign();
-	void start_symb();
-	void start_const();
-	void add_symb();
-	void add_const();
-	void end_symb();
-	void end_const();
-	void err_handler();
-
-	bool is_sep();
-	bool is_sign();
-	bool is_digit();
-	bool is_alpha();
-	bool is_num();
-
-private:
-	enum class States {
-		START,
-		CONST,
-		SYMB,
-		ERROR
+	struct AToken {
+	protected:
+		AToken() {};
+		~AToken() {};
 	};
 
-	enum class Events {
-		ISSEP,
-		ISSIGN,
-		ISDIGIT,
-		ISALPHA,
-		ISNUM,
-		ELSE
+	using tokens_t = std::vector<std::shared_ptr<AToken>>;
+	using func_t = std::function<double(std::vector<double> const& args)>;
+
+	struct NumConst : public AToken {
+		NumConst(double v) : val(v) {}
+		double val;
 	};
 
-	std::string temp;
-	char cur_char;
-	FSM<States, Events> fsm;
-	tokens_t ret;
-};
+	struct Variable : public AToken {
+		Variable(std::string const& name) : name(name) {}
+		std::string name;
+	};
 
-class std_actions{
-private:
-	std_actions() {
-		str_acts = {
-			"+",
-			"-",
-			"*",
-			"/",
-			"^",
-			"!"
+	struct Function : public AToken {
+		Function(std::string const& name) : name(name) {}
+		std::string name;
+	};
+
+	struct Sign : public AToken {
+		Sign(std::string const& name) : name(name) {}
+		std::string name;
+	};
+
+	struct Separator : public AToken{
+		Separator(char symb) : symb(symb) {}
+		char symb;
+	};
+
+
+	class FirstParser {
+	public:
+		FirstParser();
+		~FirstParser() {}
+
+		tokens_t parse(std::string const& inp);
+
+	private:
+		void add_sep();
+		void add_sign();
+		void start_symb();
+		void start_const();
+		void add_symb();
+		void add_const();
+		void end_symb();
+		void end_const();
+		void err_handler();
+
+		bool is_sep();
+		bool is_sign();
+		bool is_digit();
+		bool is_alpha();
+		bool is_num();
+
+	private:
+		enum class States {
+			START,
+			CONST,
+			SYMB,
+			ERROR
 		};
-		str_funcs = {
-			"sin",
-			"cos",
-			"tg",
-			"ctg",
-			"asin",
-			"asin",
-			"acos",
-			"atg",
-			"actg",
-			"ln",
-			"log",
-			"lg",
-			"exp"
+
+		enum class Events {
+			ISSEP,
+			ISSIGN,
+			ISDIGIT,
+			ISALPHA,
+			ISNUM,
+			ELSE
 		};
-	}
 
-	std_actions(std_actions const&) {}
-	std_actions& operator=(std_actions&) {}
-public:
-	std_actions& getInst() {
-		static std_actions instance;
-		return instance;
-	}
+		std::string temp;
+		char cur_char;
+		FSM<States, Events> fsm;
+		tokens_t ret;
+	};
 
-private:
-	std::vector<std::string> str_acts;
-	std::vector<std::string> str_funcs;
-};
+}
