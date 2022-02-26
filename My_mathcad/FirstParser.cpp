@@ -1,4 +1,4 @@
-#include "Parser.h"
+#include "FirstParser.h"
 #include "FSM.h"
 #include <iostream>
 namespace fp {
@@ -13,9 +13,9 @@ namespace fp {
 			{States::START, States::START, Events::ISSEP, [this]() {add_sep(); }},
 			{States::START, States::START, Events::ISSIGN, [this]() {add_sign(); }},
 			{States::START, States::SYMB, Events::ISALPHA, [this]() {start_symb(); }},
-			{States::START, States::CONST, Events::ISDIGIT, [this]() {start_const(); }},
-			{States::CONST, States::CONST, Events::ISNUM, [this]() {add_const(); }},
-			{States::CONST, States::CONST, Events::ISDIGIT, [this]() {add_const(); }},
+			{States::START, States::CONST, Events::ISDIGIT, [this]() {start_symb(); }},
+			{States::CONST, States::CONST, Events::ISNUM, [this]() {add_symb(); }},
+			{States::CONST, States::CONST, Events::ISDIGIT, [this]() {add_symb(); }},
 			{States::SYMB, States::SYMB, Events::ISDIGIT, [this]() {add_symb(); }},
 			{States::SYMB, States::SYMB, Events::ISALPHA, [this]() {add_symb(); }},
 			{States::CONST, States::START, Events::ISSEP, [this]() {end_const(); add_sep(); }},
@@ -27,7 +27,7 @@ namespace fp {
 			{States::CONST, States::ERROR, Events::ELSE, [this]() {err_handler(); }},
 			{States::ERROR, States::ERROR, Events::ELSE, [this]() {err_handler(); }}
 			}),
-		cur_char('/0')	{	}
+		cur_char('\0')	{	}
 
 	tokens_t FirstParser::parse(std::string const& inp) {
 		for (auto c : inp) {
@@ -52,20 +52,17 @@ namespace fp {
 	}
 
 	void FirstParser::add_sep() {
-		std::cout << "(SEP: " << cur_char << " )" << std::endl;
+		//std::cout << "(SEP: " << cur_char << " )" << std::endl;
+		ret.push_back(Separator(cur_char));
 	}
 
 	void FirstParser::add_sign() {
-		std::cout << "(SIGN: " << cur_char << " )" << std::endl;
+		//std::cout << "(SIGN: " << cur_char << " )" << std::endl;
+		ret.push_back(Sign(string("") + cur_char));
 	}
 
 	void FirstParser::start_symb() {
-		temp = "";
-		temp += cur_char;
-	}
-
-	void FirstParser::start_const() {
-		temp = "";
+		temp.clear();
 		temp += cur_char;
 	}
 
@@ -73,23 +70,25 @@ namespace fp {
 		temp += cur_char;
 	}
 
-	void FirstParser::add_const() {
-		temp += cur_char;
-	}
-
 	void FirstParser::end_symb() {
-		if (cur_char == '(')
-			std::cout << "(FUNC: " << temp << " )" << std::endl;
-		else
-			std::cout << "(VAR: " << temp << " )" << std::endl;
+		if (cur_char == '(') {
+			//std::cout << "(FUNC: " << temp << " )" << std::endl;
+			ret.push_back(Function(temp));
+		}
+		else {
+			//std::cout << "(VAR: " << temp << " )" << std::endl;
+			ret.push_back(Variable(temp));
+		}
 	}
 
 	void FirstParser::end_const() {
-		std::cout << "(CONST: " << stod(temp) << " )" << std::endl;
+		//std::cout << "(CONST: " << stod(temp) << " )" << std::endl;
+		ret.push_back(NumConst(temp));
 	}
 
 	void FirstParser::err_handler() {
-		std::cout << "(ERROR_SYM: " << cur_char << std::endl;
+		//std::cout << "(ERROR_SYM: " << cur_char << std::endl;
+		ret.push_back(NumConst(temp));
 	}
 
 	bool FirstParser::is_sep() {

@@ -5,43 +5,37 @@
 #include <string>
 #include <algorithm>
 #include "FSM.h"
-
+#include <any>
 namespace fp {
 
-	struct AToken {
-	protected:
-		AToken() {};
-		~AToken() {};
-	};
-
-	using tokens_t = std::vector<std::shared_ptr<AToken>>;
+	using tokens_t = std::vector<std::any>;
 	using func_t = std::function<double(std::vector<double> const& args)>;
 
-	struct NumConst : public AToken {
+	struct NumConst{
 		NumConst(double v) : val(v) {}
+		NumConst(std::string const& v) : val(stod(v)) {}
 		double val;
 	};
 
-	struct Variable : public AToken {
+	struct Variable{
 		Variable(std::string const& name) : name(name) {}
 		std::string name;
 	};
 
-	struct Function : public AToken {
+	struct Function{
 		Function(std::string const& name) : name(name) {}
 		std::string name;
 	};
 
-	struct Sign : public AToken {
+	struct Sign{
 		Sign(std::string const& name) : name(name) {}
 		std::string name;
 	};
 
-	struct Separator : public AToken{
+	struct Separator{
 		Separator(char symb) : symb(symb) {}
 		char symb;
 	};
-
 
 	class FirstParser {
 	public:
@@ -54,9 +48,7 @@ namespace fp {
 		void add_sep();
 		void add_sign();
 		void start_symb();
-		void start_const();
 		void add_symb();
-		void add_const();
 		void end_symb();
 		void end_const();
 		void err_handler();
